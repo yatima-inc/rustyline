@@ -36,16 +36,13 @@ unicode-width = "0.1"
 unicode-segmentation = "1.0"
 memchr = "2.0"
 # For custom bindings
-# https://rustsec.org/advisories/RUSTSEC-2021-0003.html
-smallvec = "1.6.1"
-radix_trie = "0.2"
+radix_trie = { version = "0.2", optional = true }
 regex = { version = "1.5.4", optional = true }
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.23"
 utf8parse = "0.2"
 skim = { version = "0.9", optional = true }
-buf_redux = { version = "0.8", default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["consoleapi", "handleapi", "synchapi", "minwindef", "processenv", "std", "winbase", "wincon", "winuser"] }
@@ -61,14 +58,16 @@ assert_matches = "1.2"
 rustyline-derive = { version = "0.6.0", path = "rustyline-derive" }
 
 [features]
-default = ["with-dirs", "fd-lock"]
+default = ["custom-bindings", "with-dirs", "fd-lock"]
+custom-bindings = ["radix_trie"]
 with-dirs = ["dirs-next"]
 with-fuzzy = ["skim"]
 case_insensitive_history_search = ["regex"]
 wasm = [ ]
 
 [package.metadata.docs.rs]
-features = ["with-dirs", "with-fuzzy"]
+features = ["custom-bindings", "with-dirs", "with-fuzzy"]
 all-features = false
 no-default-features = true
 default-target = "x86_64-unknown-linux-gnu"
+rustdoc-args = ["--cfg", "docsrs"]

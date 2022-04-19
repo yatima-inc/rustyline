@@ -2,13 +2,12 @@
 use std::cmp;
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
-use std::io::{self, ErrorKind, Read, Write};
+use std::io::{self, BufReader, ErrorKind, Read, Write};
 use std::os::unix::io::{AsRawFd, IntoRawFd, RawFd};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, SyncSender};
 use std::sync::{self, Arc, Mutex};
 
-use buf_redux::BufReader;
 use log::{debug, warn};
 use nix::errno::Errno;
 use nix::poll::{self, PollFlags};
@@ -155,9 +154,7 @@ type PipeWriter = (Arc<Mutex<File>>, SyncSender<String>);
 pub struct PosixRawReader {
     tty_in: BufReader<TtyIn>,
     timeout_ms: i32,
-    buf: [u8; 1],
     parser: Parser,
-    receiver: Utf8,
     key_map: PosixKeyMap,
     // external print reader
     pipe_reader: Option<PipeReader>,
@@ -211,12 +208,7 @@ impl PosixRawReader {
         Self {
             tty_in: BufReader::with_capacity(1024, TtyIn { fd }),
             timeout_ms: config.keyseq_timeout(),
-            buf: [0; 1],
             parser: Parser::new(),
-            receiver: Utf8 {
-                c: None,
-                valid: true,
-            },
             key_map,
             pipe_reader,
             fds: FdSet::new(),
@@ -664,7 +656,7 @@ impl PosixRawReader {
     }
 
     fn poll(&mut self, timeout_ms: i32) -> ::nix::Result<i32> {
-        let n = self.tty_in.buf_len();
+        let n = self.tty_in.buffer().len();
         if n > 0 {
             return Ok(n as i32);
         }
@@ -716,7 +708,8 @@ impl PosixRawReader {
                 return self.next_key(single_esc_abort).map(Event::KeyPress);
             } else {
                 let mut guard = self.pipe_reader.as_ref().unwrap().lock().unwrap();
-                guard.0.read_exact(&mut self.buf)?;
+                let mut buf = [0; 1];
+                guard.0.read_exact(&mut buf)?;
                 if let Ok(msg) = guard.1.try_recv() {
                     return Ok(Event::ExternalPrint(msg));
                 }
@@ -738,7 +731,7 @@ impl RawReader for PosixRawReader {
 
         let mut key = KeyEvent::new(c, M::NONE);
         if key == E::ESC {
-            if self.tty_in.buf_len() > 0 {
+            if !self.tty_in.buffer().is_empty() {
                 debug!(target: "rustyline", "read buffer {:?}", self.tty_in.buffer());
             }
             let timeout_ms = if single_esc_abort && self.timeout_ms == -1 {
@@ -763,16 +756,21 @@ impl RawReader for PosixRawReader {
     }
 
     fn next_char(&mut self) -> Result<char> {
+        let mut buf = [0; 1];
+        let mut receiver = Utf8 {
+            c: None,
+            valid: true,
+        };
         loop {
-            let n = self.tty_in.read(&mut self.buf)?;
+            let n = self.tty_in.read(&mut buf)?;
             if n == 0 {
                 return Err(error::ReadlineError::Eof);
             }
-            let b = self.buf[0];
-            self.parser.advance(&mut self.receiver, b);
-            if !self.receiver.valid {
+            let b = buf[0];
+            self.parser.advance(&mut receiver, b);
+            if !receiver.valid {
                 return Err(error::ReadlineError::from(io::ErrorKind::InvalidData));
-            } else if let Some(c) = self.receiver.c.take() {
+            } else if let Some(c) = receiver.c.take() {
                 return Ok(c);
             }
         }
@@ -857,10 +855,10 @@ impl PosixRenderer {
         }
         // clear old rows
         for _ in 0..old_rows {
-            self.buffer.push_str("\r\x1b[0K\x1b[A");
+            self.buffer.push_str("\r\x1b[K\x1b[A");
         }
         // clear the line
-        self.buffer.push_str("\r\x1b[0K");
+        self.buffer.push_str("\r\x1b[K");
     }
 }
 
@@ -1018,7 +1016,7 @@ impl Renderer for PosixRenderer {
 
     /// Clear the screen. Used to handle ctrl+l
     fn clear_screen(&mut self) -> Result<()> {
-        self.write_and_flush("\x1b[H\x1b[2J")
+        self.write_and_flush("\x1b[H\x1b[J")
     }
 
     fn clear_rows(&mut self, layout: &Layout) -> Result<()> {
@@ -1459,7 +1457,7 @@ mod test {
             .unwrap();
         #[rustfmt::skip]
         assert_eq!(
-            "\r\u{1b}[0K> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\r\u{1b}[1C",
+            "\r\u{1b}[K> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\r\u{1b}[1C",
             out.buffer
         );
     }

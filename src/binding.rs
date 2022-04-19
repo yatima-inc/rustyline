@@ -4,17 +4,16 @@ use crate::{
 };
 
 use radix_trie::TrieKey;
-use smallvec::{smallvec, SmallVec};
 
 /// Input event
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(docsrs, doc(cfg(feature = "custom-bindings")))]
 pub enum Event {
     /// Wildcard.
     /// Useful if you want to filter out some keys.
     Any,
     /// Key sequence
-    // TODO Validate 2 ?
-    KeySeq(SmallVec<[KeyEvent; 2]>),
+    KeySeq(Vec<KeyEvent>),
     /// TODO Mouse event
     Mouse(),
 }
@@ -43,7 +42,7 @@ impl Event {
 
 impl From<KeyEvent> for Event {
     fn from(k: KeyEvent) -> Event {
-        Event::KeySeq(smallvec![k])
+        Event::KeySeq(vec![k])
     }
 }
 
@@ -122,6 +121,7 @@ impl TrieKey for Event {
 }
 
 /// Event handler
+#[cfg_attr(docsrs, doc(cfg(feature = "custom-bindings")))]
 pub enum EventHandler {
     /// unconditional command
     Simple(Cmd),
@@ -138,6 +138,7 @@ impl From<Cmd> for EventHandler {
 }
 
 /// Give access to user input.
+#[cfg_attr(docsrs, doc(cfg(feature = "custom-bindings")))]
 pub struct EventContext<'r> {
     mode: EditMode,
     input_mode: InputMode,
@@ -199,6 +200,7 @@ impl<'r> EventContext<'r> {
 ///  * original key pressed (when same command is bound to different key)
 ///  * hint
 ///  * ...
+#[cfg_attr(docsrs, doc(cfg(feature = "custom-bindings")))]
 pub trait ConditionalEventHandler: Send + Sync {
     /// Takes the current input state and
     /// returns the command to be performed or `None` to perform the default
@@ -214,15 +216,16 @@ pub trait ConditionalEventHandler: Send + Sync {
 
 #[cfg(test)]
 mod test {
+    use core::mem::size_of;
+
     use super::{Event, EventHandler};
     use crate::{Cmd, KeyCode, KeyEvent, Modifiers};
     use radix_trie::Trie;
-    use smallvec::smallvec;
 
     #[test]
     fn encode() {
         let mut trie = Trie::new();
-        let evt = Event::KeySeq(smallvec![KeyEvent::ctrl('X'), KeyEvent::ctrl('E')]);
+        let evt = Event::KeySeq(vec![KeyEvent::ctrl('X'), KeyEvent::ctrl('E')]);
         trie.insert(evt.clone(), EventHandler::from(Cmd::Noop));
         let prefix = Event::from(KeyEvent::ctrl('X'));
         let subtrie = trie.get_raw_descendant(&prefix);
@@ -246,5 +249,10 @@ mod test {
         trie.insert(E::from(K(C::Backspace, M::CTRL)), H::from(Cmd::Noop));
         trie.insert(E::from(K(C::Enter, M::CTRL)), H::from(Cmd::Noop));
         trie.insert(E::from(K(C::Tab, M::CTRL)), H::from(Cmd::Noop));
+    }
+
+    #[test]
+    fn size_of_event() {
+        assert_eq!(size_of::<Event>(), 32);
     }
 }
