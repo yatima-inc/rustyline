@@ -1,0 +1,43 @@
+{
+  "name": "rustyline-web",
+  "version": "0.1.0",
+  "description": "A web REPL",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "create-wasm-app": ".bin/create-wasm-app.js"
+  },
+  "scripts": {
+    "build": "PATH=$(npm bin):$PATH webpack --config webpack.config.js",
+    "start": "PATH=$(npm bin):$PATH webpack serve",
+    "build:release": "PATH=$(npm bin):$PATH webpack --config webpack.config.js --env=release",
+    "start:release": "PATH=$(npm bin):$PATH webpack serve --env=release"
+  },
+  "keywords": [
+    "webassembly",
+    "wasm",
+    "rust",
+    "webpack"
+  ],
+  "dependencies": {
+  "rustyline-web": "file:./pkg",
+    "xterm": "^4.17.0",
+    "xterm-addon-fit": "^0.3.0",
+    "xterm-addon-search": "^0.3.0",
+    "xterm-addon-web-links": "^0.3.0"
+  },
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^1.6.0",
+    "@webpack-cli/serve": "^1.6.1",
+    "chokidar": "^3.5.3",
+    "copy-webpack-plugin": "^9.1.0",
+    "css-loader": "^5.2.7",
+    "file-loader": "^6.0.0",
+    "glob-parent": "^6.0.2",
+    "postcss": "^8.4.6",
+    "style-loader": "^1.2.1",
+    "webpack": "^5.69.1",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.7.4"
+  }
+}

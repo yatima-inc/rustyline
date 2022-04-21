@@ -20,7 +20,7 @@ exclude = [
 maintenance = { status = "actively-developed" }
 
 [workspace]
-members = ["rustyline-derive"]
+members = ["rustyline-derive", "web"]
 
 [dependencies]
 bitflags = "1.3"
