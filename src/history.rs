@@ -1,24 +1,22 @@
 //! History API
 
-#[cfg(feature = "fd-lock")]
-use fd_lock::RwLock;
-#[cfg(feature = "fd-lock")]
-use log::{debug, warn};
+#[cfg(not(target_arch = "wasm32"))]
+use {
+  fd_lock::RwLock,
+  log::{debug, warn},
+  std::{
+    fs::{File, OpenOptions},
+    io::SeekFrom,
+    path::PathBuf,
+    time::SystemTime
+  }
+};
+
 use std::collections::vec_deque;
 use std::collections::VecDeque;
-#[cfg(feature = "fd-lock")]
-use std::fs::File;
-#[cfg(feature = "fd-lock")]
-use std::fs::OpenOptions;
-#[cfg(feature = "fd-lock")]
-use std::io::SeekFrom;
 use std::iter::DoubleEndedIterator;
 use std::ops::Index;
 use std::path::Path;
-#[cfg(feature = "fd-lock")]
-use std::path::PathBuf;
-#[cfg(feature = "fd-lock")]
-use std::time::SystemTime;
 
 use super::Result;
 use crate::config::{Config, HistoryDuplicates};
@@ -59,18 +57,18 @@ pub struct History {
     /// Number of entries inputed by user and not saved yet
     new_entries: usize,
     /// last path used by either `load` or `save`
-    #[cfg(feature = "fd-lock")]
+    #[cfg(not(target_arch = "wasm32"))]
     path_info: Option<PathInfo>,
 }
 
 /// Last histo path, modified timestamp and size
-#[cfg(feature = "fd-lock")]
+#[cfg(not(target_arch = "wasm32"))]
 struct PathInfo(PathBuf, SystemTime, usize);
 
 impl History {
     // New multiline-aware history files start with `#V2\n` and have newlines
     // and backslashes escaped in them.
-    #[cfg(feature = "fd-lock")]
+    #[cfg(not(target_arch = "wasm32"))]
     const FILE_VERSION_V2: &'static str = "#V2";
 
     /// Default constructor
@@ -91,7 +89,7 @@ impl History {
             ignore_space: config.history_ignore_space(),
             ignore_dups: config.history_duplicates() == HistoryDuplicates::IgnoreConsecutive,
             new_entries: 0,
-            #[cfg(feature = "fd-lock")]
+	    #[cfg(not(target_arch = "wasm32"))]
             path_info: None,
         }
     }
@@ -167,7 +165,7 @@ impl History {
     /// Save the history in the specified file.
     // TODO history_truncate_file
     // https://tiswww.case.edu/php/chet/readline/history.html#IDX31
-    #[cfg(feature = "fd-lock")]
+  #[cfg(not(target_arch = "wasm32"))]
     pub fn save<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         if self.is_empty() || self.new_entries == 0 {
             return Ok(());
@@ -188,12 +186,12 @@ impl History {
     // TODO history_truncate_file
     /// Not implemented for wasm.
     // https://tiswww.case.edu/php/chet/readline/history.html#IDX31
-    #[cfg(not(feature = "fd-lock"))]
+  #[cfg(target_arch = "wasm32")]
     pub fn save<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
         todo!();
     }
 
-    #[cfg(feature = "fd-lock")]
+  #[cfg(not(target_arch = "wasm32"))]
     fn save_to(&mut self, file: &File, append: bool) -> Result<()> {
         use std::io::{BufWriter, Write};
 
@@ -228,7 +226,7 @@ impl History {
 
     /// Append new entries in the specified file.
     // Like [append_history](http://tiswww.case.edu/php/chet/readline/history.html#IDX30).
-    #[cfg(feature = "fd-lock")]
+  #[cfg(not(target_arch = "wasm32"))]
     pub fn append<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         use std::io::Seek;
 
@@ -279,7 +277,7 @@ impl History {
     /// Append new entries in the specified file.
     // Like [append_history](http://tiswww.case.edu/php/chet/readline/history.html#IDX30).
     /// Not implemented for wasm.
-    #[cfg(not(feature = "fd-lock"))]
+  #[cfg(target_arch = "wasm32")]
     pub fn append<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
         todo!();
     }
@@ -288,7 +286,7 @@ impl History {
     ///
     /// # Errors
     /// Will return `Err` if path does not already exist or could not be read.
-    #[cfg(feature = "fd-lock")]
+  #[cfg(not(target_arch = "wasm32"))]
     pub fn load<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         let path = path.as_ref();
         let file = File::open(path)?;
@@ -308,12 +306,12 @@ impl History {
     /// Not implemented for wasm.
     /// # Errors
     /// Will return `Err` if path does not already exist or could not be read.
-    #[cfg(not(feature = "fd-lock"))]
+  #[cfg(target_arch = "wasm32")]
     pub fn load<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
         todo!();
     }
 
-    #[cfg(feature = "fd-lock")]
+  #[cfg(not(target_arch = "wasm32"))]
     fn load_from(&mut self, file: &File) -> Result<bool> {
         use std::io::{BufRead, BufReader};
 
@@ -376,7 +374,7 @@ impl History {
         Ok(appendable)
     }
 
-    #[cfg(feature = "fd-lock")]
+  #[cfg(not(target_arch = "wasm32"))]
     fn update_path(&mut self, path: &Path, file: &File, size: usize) -> Result<()> {
         let modified = file.metadata()?.modified()?;
         if let Some(PathInfo(
@@ -397,7 +395,7 @@ impl History {
         Ok(())
     }
 
-    #[cfg(feature = "fd-lock")]
+  #[cfg(not(target_arch = "wasm32"))]
     fn can_just_append(&self, path: &Path, file: &File) -> Result<bool> {
         if let Some(PathInfo(ref previous_path, ref previous_modified, ref previous_size)) =
             self.path_info
@@ -589,15 +587,15 @@ impl<'a> DoubleEndedIterator for Iter<'a> {
 }
 
 cfg_if::cfg_if! {
-    if #[cfg(all(any(windows, target_arch = "wasm32"), feature = "fd-lock"))] {
-        fn umask() -> u16 {
-            0
-        }
+    if #[cfg(any(windows, target_arch = "wasm32"))] {
+       //fn umask() -> u16 {
+       //    0
+       //}
 
-        fn restore_umask(_: u16) {}
+       //fn restore_umask(_: u16) {}
 
-        fn fix_perm(_: &File) {}
-    } else if #[cfg(all(unix, feature = "fd-lock"))] {
+       //fn fix_perm(_: &std::fs::File) {}
+    } else if #[cfg(unix)] {
         use nix::sys::stat::{self, Mode, fchmod};
         fn umask() -> Mode {
             stat::umask(Mode::S_IXUSR | Mode::S_IRWXG | Mode::S_IRWXO)

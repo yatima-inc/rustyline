@@ -29,7 +29,6 @@ cfg-if = "1.0"
 # https://rustsec.org/advisories/RUSTSEC-2020-0053.html
 dirs-next = { version = "2.0", optional = true }
 # For History
-fd-lock = { version = "3.0.0", optional = true }
 libc = "0.2"
 log = "0.4"
 unicode-width = "0.1"
@@ -49,6 +48,9 @@ winapi = { version = "0.3", features = ["consoleapi", "handleapi", "synchapi", "
 scopeguard = "1.1"
 clipboard-win = "4.2.1"
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+fd-lock = "3.0.0"
+
 [dev-dependencies]
 doc-comment = "0.3"
 env_logger = { version = "0.9", default-features = false }
@@ -58,15 +60,14 @@ assert_matches = "1.2"
 rustyline-derive = { version = "0.6.0", path = "rustyline-derive" }
 
 [features]
-default = ["custom-bindings", "with-dirs", "wasm-incompatible"]
+default = ["custom-bindings", "with-dirs"]
 custom-bindings = ["radix_trie"]
 with-dirs = ["dirs-next"]
 with-fuzzy = ["skim"]
 case_insensitive_history_search = ["regex"]
-wasm-incompatible = ["fd-lock"]
 
 [package.metadata.docs.rs]
-features = ["custom-bindings", "with-dirs", "with-fuzzy", "wasm-incompatible"]
+features = ["custom-bindings", "with-dirs", "with-fuzzy"]
 all-features = false
 no-default-features = true
 default-target = "x86_64-unknown-linux-gnu"
