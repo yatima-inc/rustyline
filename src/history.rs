@@ -2,14 +2,14 @@
 
 #[cfg(not(target_arch = "wasm32"))]
 use {
-  fd_lock::RwLock,
-  log::{debug, warn},
-  std::{
-    fs::{File, OpenOptions},
-    io::SeekFrom,
-    path::PathBuf,
-    time::SystemTime
-  }
+    fd_lock::RwLock,
+    log::{debug, warn},
+    std::{
+        fs::{File, OpenOptions},
+        io::SeekFrom,
+        path::PathBuf,
+        time::SystemTime,
+    },
 };
 
 use std::collections::vec_deque;
@@ -89,7 +89,7 @@ impl History {
             ignore_space: config.history_ignore_space(),
             ignore_dups: config.history_duplicates() == HistoryDuplicates::IgnoreConsecutive,
             new_entries: 0,
-	    #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_arch = "wasm32"))]
             path_info: None,
         }
     }
@@ -165,7 +165,7 @@ impl History {
     /// Save the history in the specified file.
     // TODO history_truncate_file
     // https://tiswww.case.edu/php/chet/readline/history.html#IDX31
-  #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn save<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         if self.is_empty() || self.new_entries == 0 {
             return Ok(());
@@ -186,12 +186,12 @@ impl History {
     // TODO history_truncate_file
     /// Not implemented for wasm.
     // https://tiswww.case.edu/php/chet/readline/history.html#IDX31
-  #[cfg(target_arch = "wasm32")]
+    #[cfg(target_arch = "wasm32")]
     pub fn save<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
         todo!();
     }
 
-  #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     fn save_to(&mut self, file: &File, append: bool) -> Result<()> {
         use std::io::{BufWriter, Write};
 
@@ -226,7 +226,7 @@ impl History {
 
     /// Append new entries in the specified file.
     // Like [append_history](http://tiswww.case.edu/php/chet/readline/history.html#IDX30).
-  #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn append<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         use std::io::Seek;
 
@@ -277,7 +277,7 @@ impl History {
     /// Append new entries in the specified file.
     // Like [append_history](http://tiswww.case.edu/php/chet/readline/history.html#IDX30).
     /// Not implemented for wasm.
-  #[cfg(target_arch = "wasm32")]
+    #[cfg(target_arch = "wasm32")]
     pub fn append<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
         todo!();
     }
@@ -286,7 +286,7 @@ impl History {
     ///
     /// # Errors
     /// Will return `Err` if path does not already exist or could not be read.
-  #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn load<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         let path = path.as_ref();
         let file = File::open(path)?;
@@ -306,12 +306,12 @@ impl History {
     /// Not implemented for wasm.
     /// # Errors
     /// Will return `Err` if path does not already exist or could not be read.
-  #[cfg(target_arch = "wasm32")]
+    #[cfg(target_arch = "wasm32")]
     pub fn load<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
         todo!();
     }
 
-  #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     fn load_from(&mut self, file: &File) -> Result<bool> {
         use std::io::{BufRead, BufReader};
 
@@ -374,7 +374,7 @@ impl History {
         Ok(appendable)
     }
 
-  #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     fn update_path(&mut self, path: &Path, file: &File, size: usize) -> Result<()> {
         let modified = file.metadata()?.modified()?;
         if let Some(PathInfo(
@@ -395,7 +395,7 @@ impl History {
         Ok(())
     }
 
-  #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     fn can_just_append(&self, path: &Path, file: &File) -> Result<bool> {
         if let Some(PathInfo(ref previous_path, ref previous_modified, ref previous_size)) =
             self.path_info
