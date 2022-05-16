@@ -8,7 +8,7 @@
 //! Usage
 //!
 //! ```
-//! let mut rl = rustyline::Editor::<()>::new();
+//! let mut rl = yatima_rustyline::Editor::<()>::new();
 //! let readline = rl.readline(">> ");
 //! match readline {
 //!     Ok(line) => println!("Line: {:?}", line),
@@ -849,7 +849,7 @@ impl<H: Helper> Editor<H> {
 
     /// Returns an iterator over edited lines
     /// ```
-    /// let mut rl = rustyline::Editor::<()>::new();
+    /// let mut rl = yatima_rustyline::Editor::<()>::new();
     /// for readline in rl.iter("> ") {
     ///     match readline {
     ///         Ok(line) => {

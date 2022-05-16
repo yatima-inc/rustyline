@@ -1,4 +1,4 @@
-use rustyline::{
+use yatima_rustyline::{
     Cmd, ConditionalEventHandler, Editor, Event, EventContext, EventHandler, KeyCode, KeyEvent,
     Modifiers, RepeatCount, Result,
 };

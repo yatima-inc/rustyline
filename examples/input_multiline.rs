@@ -1,6 +1,6 @@
-use rustyline::validate::MatchingBracketValidator;
-use rustyline::{Editor, Result};
-use rustyline_derive::{Completer, Helper, Highlighter, Hinter, Validator};
+use yatima_rustyline::validate::MatchingBracketValidator;
+use yatima_rustyline::{Editor, Result};
+use yatima_rustyline_derive::{Completer, Helper, Highlighter, Hinter, Validator};
 
 #[derive(Completer, Helper, Highlighter, Hinter, Validator)]
 struct InputValidator {

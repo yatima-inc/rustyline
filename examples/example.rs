@@ -1,12 +1,12 @@
 use std::borrow::Cow::{self, Borrowed, Owned};
 
-use rustyline::completion::FilenameCompleter;
-use rustyline::error::ReadlineError;
-use rustyline::highlight::{Highlighter, MatchingBracketHighlighter};
-use rustyline::hint::HistoryHinter;
-use rustyline::validate::MatchingBracketValidator;
-use rustyline::{Cmd, CompletionType, Config, EditMode, Editor, KeyEvent};
-use rustyline_derive::{Completer, Helper, Hinter, Validator};
+use yatima_rustyline::completion::FilenameCompleter;
+use yatima_rustyline::error::ReadlineError;
+use yatima_rustyline::highlight::{Highlighter, MatchingBracketHighlighter};
+use yatima_rustyline::hint::HistoryHinter;
+use yatima_rustyline::validate::MatchingBracketValidator;
+use yatima_rustyline::{Cmd, CompletionType, Config, EditMode, Editor, KeyEvent};
+use yatima_rustyline_derive::{Completer, Helper, Hinter, Validator};
 
 #[derive(Helper, Completer, Hinter, Validator)]
 struct MyHelper {
@@ -48,7 +48,7 @@ impl Highlighter for MyHelper {
 
 // To debug rustyline:
 // RUST_LOG=rustyline=debug cargo run --example example 2> debug.log
-fn main() -> rustyline::Result<()> {
+fn main() -> yatima_rustyline::Result<()> {
     env_logger::init();
     let config = Config::builder()
         .history_ignore_space(true)

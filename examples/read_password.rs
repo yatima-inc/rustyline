@@ -1,9 +1,9 @@
 use std::borrow::Cow::{self, Borrowed, Owned};
 
-use rustyline::config::Configurer;
-use rustyline::highlight::Highlighter;
-use rustyline::{ColorMode, Editor, Result};
-use rustyline_derive::{Completer, Helper, Hinter, Validator};
+use yatima_rustyline::config::Configurer;
+use yatima_rustyline::highlight::Highlighter;
+use yatima_rustyline::{ColorMode, Editor, Result};
+use yatima_rustyline_derive::{Completer, Helper, Hinter, Validator};
 
 #[derive(Completer, Helper, Hinter, Validator)]
 struct MaskingHighlighter {

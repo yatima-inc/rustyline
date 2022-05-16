@@ -1,23 +1,18 @@
 [package]
-name = "rustyline"
-version = "9.1.2"
-authors = ["Katsu Kawakami <kkawa1570@gmail.com>"]
+name = "yatima-rustyline"
+version = "0.1.0"
+authors = ["Samuel Burnham <sam@yatima.io>"]
 edition = "2018"
-description = "Rustyline, a readline implementation based on Antirez's Linenoise"
-documentation = "http://docs.rs/rustyline"
-repository = "https://github.com/kkawakam/rustyline"
+description = "rustyline fork with Wasm support"
+documentation = "http://docs.rs/yatima-rustyline"
+repository = "https://github.com/yatima-inc/rustyline"
 readme = "README.md"
-keywords = ["readline"]
 license = "MIT"
-categories = ["command-line-interface"]
 
 exclude = [
   "/.github/*",
   "/rustfmt.toml",
 ]
-
-[badges]
-maintenance = { status = "actively-developed" }
 
 [workspace]
 members = ["rustyline-derive"]
@@ -57,7 +52,7 @@ env_logger = { version = "0.9", default-features = false }
 tempfile = "3.1.0"
 rand = "0.8"
 assert_matches = "1.2"
-rustyline-derive = { version = "0.6.0", path = "rustyline-derive" }
+yatima-rustyline-derive = { version = "0.1.0", path = "rustyline-derive" }
 
 [features]
 default = ["custom-bindings", "with-dirs"]

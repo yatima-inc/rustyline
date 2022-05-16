@@ -1,4 +1,4 @@
-use rustyline::{Editor, Result};
+use yatima_rustyline::{Editor, Result};
 
 /// Minimal REPL
 fn main() -> Result<()> {

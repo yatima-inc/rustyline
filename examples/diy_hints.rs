@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-use rustyline::hint::{Hint, Hinter};
-use rustyline::Context;
-use rustyline::{Editor, Result};
-use rustyline_derive::{Completer, Helper, Highlighter, Validator};
+use yatima_rustyline::hint::{Hint, Hinter};
+use yatima_rustyline::Context;
+use yatima_rustyline::{Editor, Result};
+use yatima_rustyline_derive::{Completer, Helper, Highlighter, Validator};
 
 #[derive(Completer, Helper, Validator, Highlighter)]
 struct DIYHinter {
