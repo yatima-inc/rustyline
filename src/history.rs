@@ -1,15 +1,22 @@
 //! History API
 
-use fd_lock::RwLock;
-use log::{debug, warn};
+#[cfg(not(target_arch = "wasm32"))]
+use {
+    fd_lock::RwLock,
+    log::{debug, warn},
+    std::{
+        fs::{File, OpenOptions},
+        io::SeekFrom,
+        path::PathBuf,
+        time::SystemTime,
+    },
+};
+
 use std::collections::vec_deque;
 use std::collections::VecDeque;
-use std::fs::{File, OpenOptions};
-use std::io::SeekFrom;
 use std::iter::DoubleEndedIterator;
 use std::ops::Index;
-use std::path::{Path, PathBuf};
-use std::time::SystemTime;
+use std::path::Path;
 
 use super::Result;
 use crate::config::{Config, HistoryDuplicates};
@@ -50,15 +57,18 @@ pub struct History {
     /// Number of entries inputed by user and not saved yet
     new_entries: usize,
     /// last path used by either `load` or `save`
+    #[cfg(not(target_arch = "wasm32"))]
     path_info: Option<PathInfo>,
 }
 
 /// Last histo path, modified timestamp and size
+#[cfg(not(target_arch = "wasm32"))]
 struct PathInfo(PathBuf, SystemTime, usize);
 
 impl History {
     // New multiline-aware history files start with `#V2\n` and have newlines
     // and backslashes escaped in them.
+    #[cfg(not(target_arch = "wasm32"))]
     const FILE_VERSION_V2: &'static str = "#V2";
 
     /// Default constructor
@@ -79,6 +89,7 @@ impl History {
             ignore_space: config.history_ignore_space(),
             ignore_dups: config.history_duplicates() == HistoryDuplicates::IgnoreConsecutive,
             new_entries: 0,
+            #[cfg(not(target_arch = "wasm32"))]
             path_info: None,
         }
     }
@@ -154,6 +165,7 @@ impl History {
     /// Save the history in the specified file.
     // TODO history_truncate_file
     // https://tiswww.case.edu/php/chet/readline/history.html#IDX31
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn save<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         if self.is_empty() || self.new_entries == 0 {
             return Ok(());
@@ -170,6 +182,16 @@ impl History {
         self.update_path(path, &lock_guard, self.len())
     }
 
+    /// Save the history in the specified file.
+    /// Not implemented for wasm.
+    // TODO history_truncate_file
+    // https://tiswww.case.edu/php/chet/readline/history.html#IDX31
+    #[cfg(target_arch = "wasm32")]
+    pub fn save<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
+        todo!();
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     fn save_to(&mut self, file: &File, append: bool) -> Result<()> {
         use std::io::{BufWriter, Write};
 
@@ -185,14 +207,19 @@ impl History {
         for entry in self.entries.iter().skip(first_new_entry) {
             let mut bytes = entry.as_bytes();
             while let Some(i) = memchr::memchr2(b'\\', b'\n', bytes) {
-                wtr.write_all(&bytes[..i])?;
-                if bytes[i] == b'\n' {
-                    wtr.write_all(b"\\n")?; // escaped line feed
+                let (head, tail) = bytes.split_at(i);
+                wtr.write_all(head)?;
+
+                let (&escapable_byte, tail) = tail
+                    .split_first()
+                    .expect("memchr guarantees i is a valid index");
+                if escapable_byte == b'\n' {
+                    wtr.write_all(br"\n")?; // escaped line feed
                 } else {
-                    debug_assert_eq!(bytes[i], b'\\');
-                    wtr.write_all(b"\\\\")?; // escaped backslash
+                    debug_assert_eq!(escapable_byte, b'\\');
+                    wtr.write_all(br"\\")?; // escaped backslash
                 }
-                bytes = &bytes[i + 1..];
+                bytes = tail;
             }
             wtr.write_all(bytes)?; // remaining bytes with no \n or \
             wtr.write_all(b"\n")?;
@@ -204,6 +231,7 @@ impl History {
 
     /// Append new entries in the specified file.
     // Like [append_history](http://tiswww.case.edu/php/chet/readline/history.html#IDX30).
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn append<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         use std::io::Seek;
 
@@ -251,10 +279,19 @@ impl History {
         Ok(())
     }
 
+    /// Append new entries in the specified file.
+    // Like [append_history](http://tiswww.case.edu/php/chet/readline/history.html#IDX30).
+    /// Not implemented for wasm.
+    #[cfg(target_arch = "wasm32")]
+    pub fn append<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
+        todo!();
+    }
+
     /// Load the history from the specified file.
     ///
     /// # Errors
     /// Will return `Err` if path does not already exist or could not be read.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn load<P: AsRef<Path> + ?Sized>(&mut self, path: &P) -> Result<()> {
         let path = path.as_ref();
         let file = File::open(path)?;
@@ -270,6 +307,16 @@ impl History {
         }
     }
 
+    /// Load the history from the specified file.
+    /// Not implemented for wasm.
+    /// # Errors
+    /// Will return `Err` if path does not already exist or could not be read.
+    #[cfg(target_arch = "wasm32")]
+    pub fn load<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
+        todo!();
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     fn load_from(&mut self, file: &File) -> Result<bool> {
         use std::io::{BufRead, BufReader};
 
@@ -332,6 +379,7 @@ impl History {
         Ok(appendable)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn update_path(&mut self, path: &Path, file: &File, size: usize) -> Result<()> {
         let modified = file.metadata()?.modified()?;
         if let Some(PathInfo(
@@ -352,6 +400,7 @@ impl History {
         Ok(())
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn can_just_append(&self, path: &Path, file: &File) -> Result<bool> {
         if let Some(PathInfo(ref previous_path, ref previous_modified, ref previous_size)) =
             self.path_info
@@ -543,14 +592,14 @@ impl<'a> DoubleEndedIterator for Iter<'a> {
 }
 
 cfg_if::cfg_if! {
-    if #[cfg(any(windows, target_arch = "wasm32"))] {
-        fn umask() -> u16 {
-            0
-        }
+    if #[cfg(windows)] {
+       fn umask() -> u16 {
+           0
+       }
 
-        fn restore_umask(_: u16) {}
+       fn restore_umask(_: u16) {}
 
-        fn fix_perm(_: &File) {}
+       fn fix_perm(_: &std::fs::File) {}
     } else if #[cfg(unix)] {
         use nix::sys::stat::{self, Mode, fchmod};
         fn umask() -> Mode {

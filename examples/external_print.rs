@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use rand::{thread_rng, Rng};
 
-use rustyline::{Editor, ExternalPrinter, Result};
+use yatima_rustyline::{Editor, ExternalPrinter, Result};
 
 fn main() -> Result<()> {
     let mut rl = Editor::<()>::new();

@@ -393,7 +393,7 @@ pub trait Refresher {
     /// Current cursor position (byte position)
     fn pos(&self) -> usize;
     /// Display `msg` above currently edited line.
-    fn external_print(&mut self, rdr: &mut <Terminal as Term>::Reader, msg: String) -> Result<()>;
+    fn external_print(&mut self, msg: String) -> Result<()>;
 }
 
 impl<'b> InputState<'b> {
@@ -435,7 +435,7 @@ impl<'b> InputState<'b> {
                         break;
                     }
                     tty::Event::ExternalPrint(msg) => {
-                        wrt.external_print(rdr, msg)?;
+                        wrt.external_print(msg)?;
                     }
                 }
             }
@@ -582,7 +582,7 @@ impl<'b> InputState<'b> {
                 } else {
                     let snd_key = match evt {
                         // we may have already read the second key in custom_seq_binding
-                        Event::KeySeq(ref key_seq) if key_seq.len() > 1 => key_seq[1],
+                        Event::KeySeq(ref key_seq) if key_seq.len() > 1 => key_seq[0],
                         _ => rdr.next_key(true)?,
                     };
                     match snd_key {
@@ -1118,7 +1118,7 @@ impl<'b> InputState<'b> {
         if num_args < 0 {
             unreachable!()
         } else {
-            num_args.abs() as RepeatCount
+            num_args.unsigned_abs() as RepeatCount
         }
     }
 }

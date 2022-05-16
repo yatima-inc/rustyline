@@ -1,12 +1,12 @@
 use std::borrow::Cow::{self, Borrowed, Owned};
 
-use rustyline::highlight::Highlighter;
-use rustyline::hint::HistoryHinter;
-use rustyline::{
+use yatima_rustyline::highlight::Highlighter;
+use yatima_rustyline::hint::HistoryHinter;
+use yatima_rustyline::{
     Cmd, ConditionalEventHandler, Editor, Event, EventContext, EventHandler, KeyEvent, RepeatCount,
     Result,
 };
-use rustyline_derive::{Completer, Helper, Hinter, Validator};
+use yatima_rustyline_derive::{Completer, Helper, Hinter, Validator};
 
 #[derive(Completer, Helper, Hinter, Validator)]
 struct MyHelper(#[rustyline(Hinter)] HistoryHinter);
