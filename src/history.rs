@@ -183,8 +183,8 @@ impl History {
     }
 
     /// Save the history in the specified file.
-    // TODO history_truncate_file
     /// Not implemented for wasm.
+    // TODO history_truncate_file
     // https://tiswww.case.edu/php/chet/readline/history.html#IDX31
     #[cfg(target_arch = "wasm32")]
     pub fn save<P: AsRef<Path> + ?Sized>(&mut self, _path: &P) -> Result<()> {
@@ -588,13 +588,13 @@ impl<'a> DoubleEndedIterator for Iter<'a> {
 
 cfg_if::cfg_if! {
     if #[cfg(any(windows, target_arch = "wasm32"))] {
-       //fn umask() -> u16 {
-       //    0
-       //}
+       fn umask() -> u16 {
+           0
+       }
 
-       //fn restore_umask(_: u16) {}
+       fn restore_umask(_: u16) {}
 
-       //fn fix_perm(_: &std::fs::File) {}
+       fn fix_perm(_: &std::fs::File) {}
     } else if #[cfg(unix)] {
         use nix::sys::stat::{self, Mode, fchmod};
         fn umask() -> Mode {
