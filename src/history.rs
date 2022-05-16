@@ -592,7 +592,7 @@ impl<'a> DoubleEndedIterator for Iter<'a> {
 }
 
 cfg_if::cfg_if! {
-    if #[cfg(any(windows, target_arch = "wasm32"))] {
+    if #[cfg(windows)] {
        fn umask() -> u16 {
            0
        }

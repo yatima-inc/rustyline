@@ -1,5 +1,6 @@
 //! This module implements and describes common TTY methods & traits
 
+#[cfg(not(target_arch = "wasm32"))]
 use unicode_width::UnicodeWidthStr;
 
 use crate::config::{Behavior, BellStyle, ColorMode, Config};
@@ -16,6 +17,7 @@ pub trait RawMode: Sized {
 }
 
 /// Input event
+#[cfg_attr(target_arch = "wasm32", allow(dead_code))]
 pub enum Event {
     KeyPress(KeyEvent),
     ExternalPrint(String),
@@ -183,6 +185,7 @@ impl<'a, R: Renderer + ?Sized> Renderer for &'a mut R {
 }
 
 // ignore ANSI escape sequence
+#[cfg(not(target_arch = "wasm32"))]
 fn width(s: &str, esc_seq: &mut u8) -> usize {
     if *esc_seq == 1 {
         if s == "[" {
