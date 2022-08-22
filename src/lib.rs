@@ -8,13 +8,13 @@
 //! Usage
 //!
 //! ```
-//! let mut rl = yatima_rustyline::Editor::<()>::new();
+//! let mut rl = yatima_rustyline::Editor::<()>::new()?;
 //! let readline = rl.readline(">> ");
 //! match readline {
 //!     Ok(line) => println!("Line: {:?}", line),
 //!     Err(_) => println!("No input"),
 //! }
-//! # Ok::<(), rustyline::error::ReadlineError>(())
+//! # Ok::<(), yatima_rustyline::error::ReadlineError>(())
 //! ```
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -849,7 +849,7 @@ impl<H: Helper> Editor<H> {
 
     /// Returns an iterator over edited lines
     /// ```
-    /// let mut rl = yatima_rustyline::Editor::<()>::new();
+    /// let mut rl = yatima_rustyline::Editor::<()>::new()?;
     /// for readline in rl.iter("> ") {
     ///     match readline {
     ///         Ok(line) => {
@@ -861,7 +861,7 @@ impl<H: Helper> Editor<H> {
     ///         }
     ///     }
     /// }
-    /// # Ok::<(), rustyline::error::ReadlineError>(())
+    /// # Ok::<(), yatima_rustyline::error::ReadlineError>(())
     /// ```
     pub fn iter<'a>(&'a mut self, prompt: &'a str) -> impl Iterator<Item = Result<String>> + 'a {
         Iter {
