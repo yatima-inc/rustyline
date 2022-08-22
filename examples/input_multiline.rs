@@ -1,5 +1,5 @@
 use yatima_rustyline::validate::MatchingBracketValidator;
-use yatima_rustyline::{Editor, Result};
+use yatima_rustyline::{Cmd, Editor, EventHandler, KeyCode, KeyEvent, Modifiers, Result};
 use yatima_rustyline_derive::{Completer, Helper, Highlighter, Hinter, Validator};
 
 #[derive(Completer, Helper, Highlighter, Hinter, Validator)]
@@ -12,8 +12,12 @@ fn main() -> Result<()> {
     let h = InputValidator {
         brackets: MatchingBracketValidator::new(),
     };
-    let mut rl = Editor::new();
+    let mut rl = Editor::new()?;
     rl.set_helper(Some(h));
+    rl.bind_sequence(
+        KeyEvent(KeyCode::Char('s'), Modifiers::CTRL),
+        EventHandler::Simple(Cmd::Newline),
+    );
 
     let input = rl.readline("> ")?;
     println!("Input: {}", input);

@@ -1,6 +1,6 @@
 [package]
 name = "yatima-rustyline"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Samuel Burnham <sam@yatima.io>"]
 edition = "2018"
 description = "rustyline fork with Wasm support"
@@ -31,12 +31,13 @@ unicode-segmentation = "1.0"
 memchr = "2.0"
 # For custom bindings
 radix_trie = { version = "0.2", optional = true }
-regex = { version = "1.5.4", optional = true }
+regex = { version = "1.5.5", optional = true }
 
 [target.'cfg(unix)'.dependencies]
 nix = { version = "0.24", default-features = false, features = ["fs", "ioctl", "poll", "signal", "term"] }
 utf8parse = "0.2"
 skim = { version = "0.9", optional = true }
+signal-hook = { version = "0.3", optional = true, default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["consoleapi", "handleapi", "synchapi", "minwindef", "processenv", "std", "winbase", "wincon", "winuser"] }

@@ -54,7 +54,7 @@ pub struct History {
     max_len: usize,
     pub(crate) ignore_space: bool,
     pub(crate) ignore_dups: bool,
-    /// Number of entries inputed by user and not saved yet
+    /// Number of entries inputted by user and not saved yet
     new_entries: usize,
     /// last path used by either `load` or `save`
     #[cfg(not(target_arch = "wasm32"))]
